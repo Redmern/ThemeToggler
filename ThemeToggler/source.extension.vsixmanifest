@@ -3,7 +3,7 @@
     <Metadata>
         <Identity Id="ThemeToggler.d594855a-8bf8-4910-bf4f-5ce4734ee604" Version="1.1" Language="en-US" Publisher="Redmer Nauta" />
         <DisplayName>ThemeToggler</DisplayName>
-        <Description xml:space="preserve">Toggle a button to switch between those sweet juicy theme's</Description>
+        <Description xml:space="preserve">Adds a Togglebutton to switch between those sweet&juicy themes</Description>
         <Icon>Resources\Icon.png</Icon>
         <PreviewImage>Resources\Icon.png</PreviewImage>
     </Metadata>
