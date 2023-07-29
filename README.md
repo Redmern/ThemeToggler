@@ -1,6 +1,5 @@
 # ThemeToggler
 
-[![Build status](https://ci.appveyor.com/api/projects/status/2g62kirurnwoxwol?svg=true)](https://ci.appveyor.com/project/Redmern/themetoggler)
 
 An easy way to toggle between light and dark theme in your trusted visual studio environment
 
