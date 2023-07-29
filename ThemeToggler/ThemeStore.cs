@@ -1,0 +1,160 @@
+﻿using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.IO;
+using System.Linq;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell.Settings;
+
+namespace ThemeToggler
+{
+    public static class ThemeStore
+    {
+        public static Guid highContrast = new("{a5c004b4-2d4b-494e-bf01-45fc492522c7}");
+        public static Guid additionalContrast = new("{ce94d289-8481-498b-8ca9-9b6191a315b9}");
+        
+
+        private static IEnumerable<Theme> GetTogglingThemes()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            SettingsStore store = new ShellSettingsManager(ServiceProvider.GlobalProvider).GetReadOnlySettingsStore(SettingsScope.Configuration);
+            List<Theme> themes = new();
+
+            if (store.CollectionExists("Themes"))
+            {
+                IEnumerable<string> guids = store.GetSubCollectionNames("Themes");
+
+                foreach (Guid guid in guids.Select(g => new Guid(g)).Where(g => g != highContrast))
+                {
+                    var collection = $@"Themes\{{{guid}}}";
+
+                    if (store.PropertyExists(collection, ""))
+                    {
+                        var name = store.GetString(collection, "");
+
+                        if (store.GetString(collection, "") == "Dark" || store.GetString(collection, "") == "Light")
+                        {
+                            themes.Add(new Theme(name, guid));
+                        }
+                    }
+                }
+            }
+
+            Guid activeGuid = GetActiveTheme();
+            Theme activeTheme = themes.SingleOrDefault(t => t.Guid == activeGuid);
+
+            if (activeTheme != null)
+            {
+                activeTheme.IsActive = true;
+            }
+
+            return themes.OrderBy(t => t.Name);
+        }
+        private static IEnumerable<Theme> GetInstalledThemes()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            SettingsStore store = new ShellSettingsManager(ServiceProvider.GlobalProvider).GetReadOnlySettingsStore(SettingsScope.Configuration);
+            List<Theme> themes = new();
+
+            if (store.CollectionExists("Themes"))
+            {
+                IEnumerable<string> guids = store.GetSubCollectionNames("Themes");
+
+                foreach (Guid guid in guids.Select(g => new Guid(g)).Where(g => g != highContrast))
+                {
+                    var collection = $@"Themes\{{{guid}}}";
+
+                    if (store.PropertyExists(collection, ""))
+                    {
+                        var name = store.GetString(collection, "");
+
+                        if (guid == additionalContrast)
+                        {
+                            name = "Blue (Extra Contrast)";
+                        }
+
+                        themes.Add(new Theme(name, guid));
+                    }
+                }
+            }
+
+            Guid activeGuid = GetActiveTheme();
+            Theme activeTheme = themes.SingleOrDefault(t => t.Guid == activeGuid);
+
+            if (activeTheme != null)
+            {
+                activeTheme.IsActive = true;
+            }
+
+            return themes.OrderBy(t => t.Name);
+        }
+
+        public static Guid GetActiveTheme()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            const string COLLECTION_NAME = @"ApplicationPrivateSettings\Microsoft\VisualStudio";
+            const string PROPERTY_NAME = "ColorTheme";
+
+            SettingsStore store = new ShellSettingsManager(ServiceProvider.GlobalProvider).GetReadOnlySettingsStore(SettingsScope.UserSettings);
+
+            if (store.CollectionExists(COLLECTION_NAME))
+            {
+                if (store.PropertyExists(COLLECTION_NAME, PROPERTY_NAME))
+                {
+                    // The value is made up of three parts, separated
+                    // by a star. The third part is the GUID of the theme.
+                    var parts = store.GetString(COLLECTION_NAME, PROPERTY_NAME).Split('*');
+                    if (parts.Length == 3)
+                    {
+                        if (Guid.TryParse(parts[2], out Guid value))
+                        {
+                            return value;
+                        }
+                    }
+                }
+            }
+
+            return Guid.Empty;
+        }
+
+        public static async Task ToggleThemeAsync()
+        {
+            var ToggleThemes = GetTogglingThemes();
+            var activeTheme = GetActiveTheme();
+            var newTheme = ToggleThemes.ToList().SingleOrDefault(t => t.Guid != activeTheme);
+
+            var settingsFile = string.Format(_vsSettings, "{" + newTheme.Guid + "}");
+            var path = Path.Combine(Path.GetTempPath(), "temp.vssettings");
+
+            
+            System.IO.File.WriteAllText(path, settingsFile);
+
+            await KnownCommands.Tools_ImportandExportSettings.ExecuteAsync($@"/import:""{path}""");
+
+            foreach (Theme theme in ToggleThemes.ToList())
+            {
+                theme.IsActive = false;
+
+                if (theme.Guid == newTheme.Guid)
+                {
+                    theme.IsActive = true;
+                }
+            }
+        }
+
+
+        public const string _vsSettings = @"<UserSettings>
+    <ApplicationIdentity version=""16.0""/>
+    <ToolsOptions>
+        <ToolsOptionsCategory name=""Environment"" RegisteredName=""Environment""/>
+    </ToolsOptions>
+    <Category name=""Environment_Group"" RegisteredName=""Environment_Group"">
+        <Category name=""Environment_FontsAndColors"" Category=""{{1EDA5DD4-927A-43a7-810E-7FD247D0DA1D}}"" Package=""{{DA9FB551-C724-11d0-AE1F-00A0C90FFFC3}}"" RegisteredName=""Environment_FontsAndColors"" PackageName=""Visual Studio Environment Package"">
+            <PropertyValue name=""Version"">2</PropertyValue>
+            <FontsAndColors Version=""2.0"">
+                <Theme Id=""{0}""/>
+            </FontsAndColors>
+        </Category>
+    </Category>
+</UserSettings>";
+    }
+}
