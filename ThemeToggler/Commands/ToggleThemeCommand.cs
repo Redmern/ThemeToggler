@@ -1,7 +1,7 @@
 ﻿namespace ThemeToggler
 {
     [Command(PackageIds.MyCommand)]
-    internal sealed class ToggleTheme : BaseCommand<ToggleTheme>
+    internal sealed class ToggleThemeCommand : BaseCommand<ToggleThemeCommand>
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
