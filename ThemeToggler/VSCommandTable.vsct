@@ -1,58 +1,78 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <Extern href="stdidcmd.h"/>
-  <Extern href="vsshlids.h"/>
-  <Include href="KnownImageIds.vsct"/>
-  <Include href="VSGlobals.vsct"/>
+	<Extern href="stdidcmd.h"/>
+	<Extern href="vsshlids.h"/>
+	<Include href="KnownImageIds.vsct"/>
+	<Include href="VSGlobals.vsct"/>
 
 	<Commands package="ThemeToggler">
-		
-	<Menus>
-	    <Menu guid="ThemeToggler" id="Toolbar" type="Toolbar" >
-		    <CommandFlag>DefaultDocked</CommandFlag>
-		    <Strings>
-			    <ButtonText>ThemeToggler</ButtonText>
-			    <CommandName>ThemeToggler</CommandName>
-		    </Strings>
-	    </Menu>
-	</Menus>
-		
-    <Groups>
-		
-		<Group guid="ThemeToggler" id="ToolbarGroup" priority="0x0000">
-			<Parent guid="ThemeToggler" id="Toolbar"/>
-		</Group>
-		
-      <!--<Group guid="ThemeToggler" id="MyMenuGroup" priority="0x0600">
-        <Parent guid="guidToolbarTestCommandPackageCmdSet" id=""/>
-      </Group>-->
-		
-    </Groups>
-    <!--This section defines the elements the user can interact with, like a menu command or a button
+		<Menus>
+			<Menu guid="ThemeToggler" id="Toolbar" type="Toolbar">
+				<CommandFlag>DefaultDocked</CommandFlag>
+				<Strings>
+					<ButtonText>ThemeToggler</ButtonText>
+					<CommandName>ThemeToggler</CommandName>
+				</Strings>
+			</Menu>
+			<Menu guid="ThemeToggler" id="ThemeTogglerMenu" priority="0x0250" type="Menu">
+				<Parent guid="VSMainMenu" id="Tools.OptionsGroup"/>
+				<Strings>
+					<ButtonText>ThemeToggler</ButtonText>
+				</Strings>
+			</Menu>
+		</Menus>
+
+		<Groups>
+			<Group guid="ThemeToggler" id="ThemeTogglerListGroup" priority="0x0600">
+				<Parent guid="ThemeToggler" id="ThemeTogglerMenu"/>
+			</Group>
+			<Group guid="ThemeToggler" id="ToolbarGroup" priority="0x0000">
+				<Parent guid="ThemeToggler" id="Toolbar"/>
+			</Group>
+		</Groups>
+
+		<!--This section defines the elements the user can interact with, like a menu command or a button
         or combo box in a toolbar. -->
-    <Buttons>
-		
-      <Button guid="ThemeToggler" id="MyCommand" priority="0x0100" type="Button">
-        <Parent guid="ThemeToggler" id="ToolbarGroup" />
-        <Icon guid="ImageCatalogGuid" id="ToggleAllBreakpoints" />
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Toggle Button</ButtonText>
-          <LocCanonicalName>.ThemeToggler.Toggle</LocCanonicalName>
-        </Strings>
-      </Button>
-		
-    </Buttons>
+		<Buttons>
 
-  </Commands>
+			<Button guid="ThemeToggler" id="MyCommand" priority="0x0100" type="Button">
+				<Parent guid="ThemeToggler" id="ToolbarGroup" />
+				<Icon guid="ImageCatalogGuid" id="ToggleAllBreakpoints" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Toggle Button</ButtonText>
+					<LocCanonicalName>.ThemeToggler.Toggle</LocCanonicalName>
+				</Strings>
+			</Button>
 
-  <Symbols>
-    <GuidSymbol name="ThemeToggler" value="{8bfcc1ec-e93b-4780-862f-800dd53ca38b}">
-      <IDSymbol name="MyMenuGroup" value="0x0001" />
-      <IDSymbol name="MyCommand" value="0x0100" />
-	  <IDSymbol name="Toolbar" value="0x1001" />
-	  <IDSymbol name="ToolbarGroup" value="0x1050" />
-    </GuidSymbol>
-  </Symbols>
+			<Button guid="ThemeToggler" id="FirstTheme" priority="0x0100" type="Button">
+				<Parent guid="ThemeToggler" id="ThemeTogglerListGroup" />
+				<CommandFlag>DynamicItemStart</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>TextChanges</CommandFlag>
+				<CommandFlag>DefaultDisabled</CommandFlag>
+				<Strings>
+					<ButtonText>Loading...</ButtonText>
+					<LocCanonicalName>ThemeSwitcher.FirstTheme</LocCanonicalName>
+				</Strings>
+			</Button>
+
+		</Buttons>
+
+
+	</Commands>
+
+	<Symbols>
+		<GuidSymbol name="ThemeToggler" value="{8bfcc1ec-e93b-4780-862f-800dd53ca38b}">
+			<IDSymbol name="ThemeTogglerListGroup" value="0x0012" />
+			<IDSymbol name="ThemeTogglerMenu" value="0x0013" />
+			<IDSymbol name="MyMenuGroup" value="0x0001" />
+			<IDSymbol name="MyCommand" value="0x0100" />
+			<IDSymbol name="Toolbar" value="0x1001" />
+			<IDSymbol name="ToolbarGroup" value="0x1050" />
+			<IDSymbol name="FirstTheme" value="0x0101" />
+		</GuidSymbol>
+	</Symbols>
 </CommandTable>
