@@ -16,12 +16,14 @@
 					<CommandName>ThemeToggler</CommandName>
 				</Strings>
 			</Menu>
-			<Menu guid="ThemeToggler" id="ThemeTogglerMenu" priority="0x0250" type="Menu">
-				<Parent guid="VSMainMenu" id="Tools.OptionsGroup"/>
-				<Strings>
-					<ButtonText>ThemeToggler</ButtonText>
-				</Strings>
-			</Menu>
+                        <Menu guid="ThemeToggler" id="ThemeTogglerMenu" priority="0x0250" type="Menu">
+                                <!-- Place the menu directly under the Tools main menu to avoid relying on
+                                     the OptionsGroup which changed in newer VS versions -->
+                                <Parent guid="VSMainMenu" id="Tools"/>
+                                <Strings>
+                                        <ButtonText>ThemeToggler</ButtonText>
+                                </Strings>
+                        </Menu>
 		</Menus>
 
 		<Groups>

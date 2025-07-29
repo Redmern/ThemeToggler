@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ThemeToggler;
 
 namespace ThemeToggler.Commands
@@ -21,25 +18,30 @@ namespace ThemeToggler.Commands
             }
 
             IEnumerable<Theme> themes = ThemeStore.Themes.Value;
+            var selected = new HashSet<Guid>(ThemeStore.LoadSelectedThemeGuids());
+            if (!selected.Any())
+            {
+                selected.Add(ThemeStore.GetActiveTheme());
+            }
             OleMenuCommandService mcs = Package.GetService<IMenuCommandService, OleMenuCommandService>();
             var i = 1;
 
-            SetupCommand(Command, themes.First());
+            SetupCommand(Command, themes.First(), selected.Contains(themes.First().Guid));
 
             foreach (Theme theme in themes.Skip(1))
             {
                 CommandID cmdId = new(PackageGuids.ThemeToggler, PackageIds.FirstTheme + i++);
                 OleMenuCommand command = new(Execute, cmdId);
-                SetupCommand(command, theme);
+                SetupCommand(command, theme, selected.Contains(theme.Guid));
                 mcs.AddCommand(command);
             }
         }
 
-        private void SetupCommand(OleMenuCommand command, Theme theme)
+        private void SetupCommand(OleMenuCommand command, Theme theme, bool isChecked)
         {
             command.Enabled = command.Visible = true;
             command.Text = theme.Name;
-            command.Checked = theme.IsActive;
+            command.Checked = isChecked;
             command.Properties["guid"] = theme.Guid;
             _commands.Add(command);
         }
@@ -56,17 +58,11 @@ namespace ThemeToggler.Commands
                 {
                     if (cmd == command)
                     {
-                        if (cmd.Checked == true)
-                        {
-                            cmd.Checked = false;
-                        }
-                        else
-                        {
-                            cmd.Checked = true;
-                        }
+                        cmd.Checked = !cmd.Checked;
                     }
                 }
-                
+                ThemeStore.SaveSelectedThemeGuids(_commands.Where(c => c.Checked).Select(c => (Guid)c.Properties["guid"]));
+                ThemeStore.RefreshTogglingThemes();
             }
         }
     }
