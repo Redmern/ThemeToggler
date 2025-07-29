@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,49 @@ namespace ThemeToggler
         public static Guid additionalContrast = new("{ce94d289-8481-498b-8ca9-9b6191a315b9}");
         public static Lazy<IEnumerable<Theme>> Themes = new(GetInstalledThemes);
         public static Lazy<IEnumerable<Theme>> TogglingThemes = new(GetTogglingThemes);
+
+        internal static IEnumerable<Guid> LoadSelectedThemeGuids()
+        {
+            try
+            {
+                if (File.Exists(SelectedThemesFile))
+                {
+                    return File.ReadAllLines(SelectedThemesFile)
+                        .Select(l => Guid.TryParse(l, out var g) ? g : Guid.Empty)
+                        .Where(g => g != Guid.Empty);
+                }
+            }
+            catch
+            {
+            }
+            return Enumerable.Empty<Guid>();
+        }
+
+        internal static void SaveSelectedThemeGuids(IEnumerable<Guid> guids)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(SelectedThemesFile);
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                File.WriteAllLines(SelectedThemesFile, guids.Select(g => g.ToString()));
+            }
+            catch
+            {
+            }
+        }
+
+        internal static void RefreshTogglingThemes()
+        {
+            TogglingThemes = new Lazy<IEnumerable<Theme>>(GetTogglingThemes);
+        }
+
+        private static readonly string SelectedThemesFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "ThemeToggler",
+            "selectedThemes.txt");
 
         public static Guid GetActiveTheme()
         {
@@ -96,12 +140,12 @@ namespace ThemeToggler
             return mainThemes.OrderBy(t => t.Name);
         }
 
-            private static IEnumerable<Theme> GetTogglingThemes()
+        private static IEnumerable<Theme> GetTogglingThemes()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             SettingsStore store = new ShellSettingsManager(ServiceProvider.GlobalProvider).GetReadOnlySettingsStore(SettingsScope.Configuration);
             List<Theme> themes = new();
-            List<Theme> mainThemes = new();
+            var selected = new HashSet<Guid>(LoadSelectedThemeGuids());
 
             if (store.CollectionExists("Themes"))
             {
@@ -115,16 +159,9 @@ namespace ThemeToggler
                     {
                         var name = store.GetString(collection, "");
 
-                        foreach (var cmd in ThemeTogglerMenuCommand._commands)
+                        if (selected.Contains(guid))
                         {
-                            if (cmd.Checked)
-                            { 
-                                var selectedGuid = (Guid)cmd.Properties["guid"];
-                                if (selectedGuid == guid)
-                                {
-                                    themes.Add(new Theme(name, guid));
-                                }
-                            }
+                            themes.Add(new Theme(name, guid));
                         }
                     }
                 }
